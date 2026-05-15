@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('carts_queues', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('item_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('book_id');
+            $table->enum('type', ['cart', 'queue'])->default('cart');
+            $table->boolean('is_reminder_active')->default(false);
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreign('book_id')->references('book_id')->on('books')->onDelete('cascade');
         });
     }
 
