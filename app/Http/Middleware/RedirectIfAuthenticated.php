@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -11,9 +12,11 @@ class RedirectIfAuthenticated
     {
         if (Session::has('user_id')) {
             $role = Session::get('role');
+            
+            // Jika admin, arahkan ke rute admin. Jika user biasa, arahkan langsung ke URL /dashboard
             return $role === 'admin'
                 ? redirect()->route('admin.books.index')
-                : redirect()->route('dashboard');
+                : redirect('/dashboard'); // <-- DIUBAH DI SINI (Pakai URL langsung, bukan route name)
         }
         return $next($request);
     }
