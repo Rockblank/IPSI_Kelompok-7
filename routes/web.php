@@ -7,7 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\Admin\BookController as AdminBookController;
-use App\Http\Controllers\notification\NotificationController;
+use App\Http\Controllers\NotificationController;
 
 // ── ROOT (Otomatis dialihkan ke Login) ───────────────────────────
 Route::get('/', fn() => redirect()->route('login'));

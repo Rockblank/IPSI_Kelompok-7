@@ -1,9 +1,8 @@
 <?php
 
-// Wajib kecil semua 'notification' sesuai nama folder kamu
-namespace App\Http\Controllers\notification; 
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller; 
+use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Session; // <-- Tambahkan import Session di sini
 
