@@ -38,6 +38,7 @@ Route::middleware(['auth.check'])->group(function () {
     Route::delete('/cart/{item}',      [CartController::class, 'destroy'])->name('cart.destroy');
 
     // Peminjaman  → Khansa
+    Route::get('/loans/confirm',       [LoanController::class, 'confirm'])->name('loans.confirm');
     Route::post('/loans',              [LoanController::class, 'store'])->name('loans.store');
 
     // History  → Khansa
