@@ -8,7 +8,6 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\BookController as AdminBookController;
-// FIX: import Admin\LoanController yang benar (sebelumnya pakai LoanController user)
 use App\Http\Controllers\Admin\LoanController as AdminLoanController;
 
 Route::get('/', fn() => redirect()->route('login'));
@@ -31,9 +30,10 @@ Route::middleware(['auth.check'])->group(function () {
     Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
     Route::get('/books/{book}',     [DashboardController::class, 'show'])->name('books.show');
 
-    Route::get('/cart',             [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add/{book}', [CartController::class, 'add'])->name('cart.add');
-    Route::delete('/cart/{item}',   [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::get('/cart',                    [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{book}',        [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/queue/{book}',      [CartController::class, 'addToQueue'])->name('cart.queue'); // <<< Baru: antri notifikasi buku habis
+    Route::delete('/cart/{item}',          [CartController::class, 'destroy'])->name('cart.destroy');
 
     Route::get('/loans/confirm',    [LoanController::class, 'confirm'])->name('loans.confirm');
     Route::post('/loans',           [LoanController::class, 'store'])->name('loans.store');
@@ -50,8 +50,6 @@ Route::middleware(['auth.check', 'role:admin'])
 
         Route::resource('books', AdminBookController::class);
 
-        // FIX: pakai AdminLoanController, bukan LoanController user
-        // FIX: method index() dan update() — bukan adminIndex/adminUpdateStatus
-        Route::get('/loans',                  [AdminLoanController::class, 'index'])->name('loans.index');
+        Route::get('/loans',                   [AdminLoanController::class, 'index'])->name('loans.index');
         Route::post('/loans/{loan_id}/return', [AdminLoanController::class, 'update'])->name('loans.return');
     });

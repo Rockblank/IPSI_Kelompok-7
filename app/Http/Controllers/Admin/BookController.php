@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\CartController;
 use App\Models\Book;
 use Illuminate\Http\Request;
 
@@ -68,6 +69,8 @@ class BookController extends Controller
             'available_stock' => 'required|integer|min:0',
         ]);
 
+        $stockBefore = $book->available_stock;
+
         $book->update([
             'book_title'      => $request->book_title,
             'author'          => $request->author,
@@ -75,6 +78,11 @@ class BookController extends Controller
             'available_stock' => $request->available_stock,
             'book_status'     => $request->available_stock > 0 ? 'tersedia' : 'habis',
         ]);
+
+        // Jika stok sebelumnya 0 dan sekarang > 0, kirim notifikasi ke user yang mengantri
+        if ($stockBefore <= 0 && $request->available_stock > 0) {
+            CartController::notifyQueue($book->book_id);
+        }
 
         return redirect()->route('admin.books.index')
             ->with('success', 'Data buku berhasil diperbarui.');

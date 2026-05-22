@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Library — @yield('title', 'Beranda')</title>
+    <title>E-Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
@@ -31,8 +31,17 @@
         .nav-search input { border: none; outline: none; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; width: 220px; background: transparent; color: var(--text); }
         .nav-search button { height: 36px; padding: 0 18px; background: var(--accent); color: var(--accent-fg); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; border-radius: 0 999px 999px 0; transition: opacity .15s; }
         .nav-search button:hover { opacity: .85; }
-        .nav-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; text-decoration: none; color: var(--text); font-size: 18px; transition: background .15s; }
+
+        .nav-icon {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; text-decoration: none; color: var(--text);
+            transition: background .15s;
+            border: none; background: transparent; cursor: pointer;
+        }
         .nav-icon:hover { background: var(--border); }
+        .nav-icon svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
         .nav-pill { display: flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-fg); padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; text-decoration: none; }
 
         main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
@@ -84,18 +93,35 @@
 <nav>
     <a href="{{ route('dashboard') }}" class="nav-brand">E-Library</a>
 
-    {{-- FIX: ganti @auth_session (tidak valid) dengan @if(session()) --}}
     @if(session('user_id'))
+        {{-- Search bar hanya tampil di halaman selain dashboard --}}
+        @if(!request()->routeIs('dashboard'))
         <form action="{{ route('dashboard.search') }}" method="GET" class="nav-search">
             <input type="text" name="keyword"
                    placeholder="Cari judul buku..."
                    value="{{ request('keyword') }}">
             <button type="submit">Cari</button>
         </form>
+        @else
+            <span style="margin-right:auto"></span>
+        @endif
 
-        <a href="{{ route('cart.index') }}"         class="nav-icon" title="Keranjang">🛒</a>
-        <a href="{{ route('notifications.index') }}" class="nav-icon" title="Notifikasi">🔔</a>
-        <a href="{{ route('history.index') }}"      class="nav-pill">{{ session('user_name') }}</a>
+        {{-- Ikon Dashboard --}}
+        <a href="{{ route('dashboard') }}" class="nav-icon" title="Dashboard">
+            <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        </a>
+
+        {{-- Ikon Keranjang --}}
+        <a href="{{ route('cart.index') }}" class="nav-icon" title="Keranjang">
+            <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </a>
+
+        {{-- Ikon Notifikasi --}}
+        <a href="{{ route('notifications.index') }}" class="nav-icon" title="Notifikasi">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
+
+        <a href="{{ route('history.index') }}" class="nav-pill">{{ session('user_name') }}</a>
 
         <form method="POST" action="{{ route('logout') }}" style="display:inline">
             @csrf
