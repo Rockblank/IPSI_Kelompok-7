@@ -9,6 +9,7 @@
 
 <div style="display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:start">
 
+    {{-- Daftar buku yang akan dipinjam --}}
     <div class="card">
         <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--muted)">
             BUKU YANG AKAN DIPINJAM
@@ -26,6 +27,7 @@
         @endforelse
     </div>
 
+    {{-- Form konfirmasi --}}
     <div class="card">
         <h3 style="font-size:16px;font-weight:600;margin-bottom:4px">Peminjaman</h3>
         <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
@@ -37,10 +39,11 @@
 
             <div class="form-group">
                 <label>Tanggal Peminjaman</label>
-                <input type="text" value="{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM YYYY') }}"
-                       readonly style="background:var(--bg);cursor:not-allowed">
+                <input type="text" value="{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM YYYY') }}" readonly
+                       style="background:var(--bg);cursor:not-allowed">
             </div>
 
+            {{-- FIX: input lama_pinjam (1-3 hari) sesuai LoanController@store --}}
             <div class="form-group">
                 <label>Lama Peminjaman (hari) <span style="color:var(--danger)">*</span></label>
                 <select name="lama_pinjam" class="{{ $errors->has('lama_pinjam') ? 'is-error' : '' }}">

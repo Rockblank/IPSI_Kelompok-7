@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CartQueue extends Model
 {
+    protected $table = 'carts_queues';
     protected $primaryKey = 'item_id';
     public $timestamps = false;
     protected $fillable = ['user_id', 'book_id', 'type', 'is_reminder_active'];

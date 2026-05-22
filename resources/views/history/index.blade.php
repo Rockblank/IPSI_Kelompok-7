@@ -1,54 +1,74 @@
 @extends('layouts.app')
-
 @section('title', 'Riwayat Peminjaman')
 
 @section('content')
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📜 Riwayat Peminjaman Buku Anda</h2>
+<div class="page-header">
+    <h1>Riwayat Peminjaman</h1>
+    {{-- Filter status --}}
+    <div style="display:flex;gap:8px">
+        <a href="{{ route('history.index') }}"
+           class="btn btn-sm {{ !$filter ? 'btn-primary' : 'btn-outline' }}">Semua</a>
+        <a href="{{ route('history.index', ['status' => 'borrowed']) }}"
+           class="btn btn-sm {{ $filter === 'borrowed' ? 'btn-primary' : 'btn-outline' }}">Masa Pinjam</a>
+        <a href="{{ route('history.index', ['status' => 'returned']) }}"
+           class="btn btn-sm {{ $filter === 'returned' ? 'btn-primary' : 'btn-outline' }}">Dikembalikan</a>
     </div>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID Pinjam</th>
-                            <th>Judul Buku</th>
-                            <th>Tanggal Pinjam</th>
-                            <th>Batas Jatuh Tempo</th>
-                            <th>Tanggal Dikembalikan</th>
-                            <th class="text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if($historyLoans->isEmpty())
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Anda belum pernah melakukan peminjaman buku.</td>
-                            </tr>
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Judul Buku</th>
+                <th>Penulis</th>
+                <th>Tgl Pinjam</th>
+                <th>Jatuh Tempo</th>
+                <th>Tgl Kembali</th>
+                <th style="text-align:center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{-- FIX: ganti $historyLoans → $loans (sesuai HistoryController) --}}
+            @forelse($loans as $loan)
+            <tr>
+                <td style="font-weight:500">{{ $loan->book->book_title ?? '—' }}</td>
+                <td style="color:var(--muted)">{{ $loan->book->author ?? '—' }}</td>
+                <td>{{ $loan->loan_date }}</td>
+                <td>
+                    {{ $loan->due_date }}
+                    @if($loan->transaction_status === 'borrowed' && $loan->sisa_hari !== null)
+                        @if($loan->sisa_hari < 0)
+                            <div style="font-size:11px;color:var(--danger);font-weight:500">
+                                Terlambat {{ abs($loan->sisa_hari) }} hari
+                            </div>
+                        @elseif($loan->sisa_hari === 0)
+                            <div style="font-size:11px;color:var(--danger);font-weight:500">Hari ini!</div>
                         @else
-                            @foreach($historyLoans as $loan)
-                                <tr>
-                                    <td>#{{ $loan->loan_id }}</td>
-                                    <td><strong>{{ $loan->book->title ?? 'Buku Tidak Ditemukan' }}</strong></td>
-                                    <td>{{ $loan->loan_date }}</td>
-                                    <td>{{ $loan->due_date }}</td>
-                                    <td>{{ $loan->return_date ?? '-' }}</td>
-                                    <td class="text-center">
-                                        @if($loan->transaction_status === 'borrowed')
-                                            <span class="badge bg-warning text-dark">SEDANG DIPINJAM</span>
-                                        @else
-                                            <span class="badge bg-success">SUDAH KEMBALI</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
+                            <div style="font-size:11px;color:var(--muted)">{{ $loan->sisa_hari }} hari lagi</div>
                         @endif
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                    @endif
+                </td>
+                <td>{{ $loan->return_date ?? '—' }}</td>
+                <td style="text-align:center">
+                    @if($loan->transaction_status === 'borrowed')
+                        @if(isset($loan->sisa_hari) && $loan->sisa_hari < 0)
+                            <span class="badge badge-overdue">Terlambat</span>
+                        @else
+                            <span class="badge badge-borrowed">Masa Pinjam</span>
+                        @endif
+                    @else
+                        <span class="badge badge-returned">Dikembalikan</span>
+                    @endif
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">
+                    Belum ada riwayat peminjaman.
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 @endsection
