@@ -36,7 +36,8 @@ Route::middleware(['auth.check'])->group(function () {
     Route::post('/cart/add/{book}',    [CartController::class, 'add'])->name('cart.add');
     Route::delete('/cart/{item}',      [CartController::class, 'destroy'])->name('cart.destroy');
 
-    // Peminjaman & Konfirmasi (Khansa)
+    // Peminjaman  → Khansa
+    Route::get('/loans/confirm',       [LoanController::class, 'confirm'])->name('loans.confirm');
     Route::post('/loans',              [LoanController::class, 'store'])->name('loans.store');
 
     // History / Riwayat (Khansa)

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     protected $primaryKey = 'loan_id';
+    public $timestamps = false;
     protected $fillable = ['user_id', 'book_id', 'loan_date', 'due_date', 'return_date', 'transaction_status'];
 
     public function user()

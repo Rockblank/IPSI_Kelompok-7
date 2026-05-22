@@ -7,86 +7,84 @@ use App\Models\Notification;
 use App\Models\Book;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\CartQueue;
+use App\Models\Loan;
+use App\Models\Book;
 
 class LoanController extends Controller
 {
-    // ========================================================
-    // BAGIAN 5 & 6: LOGIKA TRIGGER JATUH TEMPO (PSPEC hal. 52)
-    // ========================================================
-    public static function triggerNotifications()
+    // GET /loans/confirm → tampilkan halaman konfirmasi
+    public function confirm()
     {
-        $today = Carbon::today()->toDateString();
-
-        // Cari peminjaman aktif yang durasinya sudah/melewati hari ini
-        $overdueLoans = Loan::where('transaction_status', 'borrowed')
-            ->where('due_date', '<=', $today)
+        $user_id   = session('user_id');
+        $cartItems = CartQueue::with('book')
+            ->where('user_id', $user_id)
+            ->where('type', 'cart')
             ->get();
 
-        $inserted = 0;
+        return view('loans.confirm', compact('cartItems'));
+    }
 
-        foreach ($overdueLoans as $loan) {
-            $message = "Pengingat: Buku yang Anda pinjam (ID: #{$loan->loan_id}) telah mencapai/melewati batas jatuh tempo ({$loan->due_date}). Harap segera mengembalikannya.";
+    // POST /loans → proses konfirmasi pinjam
+    public function store(Request $request)
+    {
+        $user_id = session('user_id');
 
-            // Mencegah duplikasi notifikasi ganda di hari yang sama
-            $exists = Notification::where('user_id', $loan->user_id)
-                ->where('message', $message)
-                ->whereDate('sent_at', Carbon::today())
-                ->exists();
+        $request->validate([
+            'lama_pinjam' => 'required|integer|min:1|max:3',
+        ], [
+            'lama_pinjam.required' => 'Lama peminjaman wajib diisi.',
+            'lama_pinjam.integer'  => 'Lama peminjaman harus berupa angka.',
+            'lama_pinjam.min'      => 'Minimal peminjaman adalah 1 hari.',
+            'lama_pinjam.max'      => 'Maksimal peminjaman adalah 3 hari.',
+        ]);
 
-            if (!$exists) {
-                Notification::create([
-                    'user_id' => $loan->user_id,
-                    'message' => $message,
-                    'sent_at' => Carbon::now(),
-                    'is_read' => false
-                ]);
-                $inserted++;
-            }
+        $lama_pinjam = (int) $request->lama_pinjam;
+
+        $keranjang = CartQueue::where('user_id', $user_id)
+            ->where('type', 'cart')
+            ->get();
+
+        if ($keranjang->isEmpty()) {
+            return redirect()->route('cart.index')
+                ->with('error', 'Tidak ada buku yang dipilih. Tambahkan buku ke keranjang terlebih dahulu.');
         }
 
-        return $inserted;
-    }
+        $loan_date = Carbon::now()->toDateString();
+        $due_date  = Carbon::now()->addDays($lama_pinjam)->toDateString();
 
-    // ========================================================
-    // BAGIAN 7: ADMIN - VIEW DAFTAR PINJAM & UPDATE 'RETURNED'
-    // ========================================================
-    public function adminIndex()
-    {
-        // Mengambil seluruh data pinjaman beserta relasi user dan book
-        $loans = Loan::with(['user', 'book'])
-            ->orderBy('transaction_status', 'asc')
-            ->orderBy('loan_date', 'desc')
-            ->get();
+        DB::transaction(function () use ($keranjang, $user_id, $loan_date, $due_date) {
+            foreach ($keranjang as $item) {
+                $book = Book::find($item->book_id);
 
-        // Mengarah ke folder resources/views/admin/loans/index.blade.php
-        return view('admin.loans.index', compact('loans'));
-    }
+                if (!$book || $book->available_stock <= 0) {
+                    continue;
+                }
 
-    public function adminUpdateStatus($loan_id)
-    {
-        // Sesuai Catatan Lead Programmer: Update stok wajib pakai DB::transaction()
-        DB::transaction(function () use ($loan_id) {
-            $loan = Loan::findOrFail($loan_id);
-
-            if ($loan->transaction_status === 'borrowed') {
-                // Set status jadi returned dan simpan tanggal pengembalian hari ini
-                $loan->update([
-                    'transaction_status' => 'returned',
-                    'return_date' => Carbon::now()->toDateString()
+                Loan::create([
+                    'user_id'            => $user_id,
+                    'book_id'            => $item->book_id,
+                    'loan_date'          => $loan_date,
+                    'due_date'           => $due_date,
+                    'return_date'        => null,
+                    'transaction_status' => 'borrowed',
                 ]);
 
-                // Kembalikan ketersediaan stok buku (+1)
-                $book = Book::findOrFail($loan->book_id);
-                $newStock = $book->available_stock + 1;
-                $book->update([
-                    'available_stock' => $newStock,
-                    'book_status' => $newStock > 0 ? 'tersedia' : 'habis'
-                ]);
+                $book->decrement('available_stock');
+
+                if ($book->available_stock <= 0) {
+                    $book->update(['book_status' => 'habis']);
+                }
             }
+
+            CartQueue::where('user_id', $user_id)
+                ->where('type', 'cart')
+                ->delete();
         });
 
-        return redirect()->back()->with('success', 'Status peminjaman berhasil diperbarui menjadi Returned dan stok buku telah ditambahkan kembali!');
+        return redirect()->route('history.index')
+            ->with('success', 'Peminjaman Buku Anda telah dikonfirmasi.');
     }
 }
