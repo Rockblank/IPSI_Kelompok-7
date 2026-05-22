@@ -3,7 +3,6 @@
 
 @push('styles')
 <style>
-    /* override main padding untuk dashboard — centered layout */
     main { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 60px); padding: 32px 24px; }
     .dashboard-wrap { width: 100%; max-width: 540px; }
     .search-bar { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; height: 52px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
