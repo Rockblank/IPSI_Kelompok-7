@@ -62,7 +62,17 @@
     </header>
 
     <main class="flex flex-col items-start justify-center flex-grow max-w-xl mx-auto w-full my-auto px-4">
-        
+        @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center">
+                {{ session('error') }}
+            </div>
+        @endif
         <div class="w-full mb-4">
             <h1 class="text-3xl font-serif leading-tight">Halo, <span class="font-bold">{{ $namaUser }}</span></h1>
             <p class="text-2xl font-serif text-lib-text mt-0.5">Mau baca apa hari ini?</p>
