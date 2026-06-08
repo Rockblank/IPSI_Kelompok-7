@@ -86,6 +86,7 @@
         .btn:hover { opacity: .88; transform: translateY(-1px); }
         .btn-primary { background: var(--accent); color: var(--accent-fg); }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-active { background: var(--text); color: #fff; border: 1px solid var(--text); }
         .btn-danger  { background: var(--danger); color: #fff; }
         .btn-sm      { padding: 6px 14px; font-size: 13px; }
 
@@ -130,6 +131,8 @@
         <button type="submit">Cari</button>
     </form>
 
+    <a href="{{ route('admin.books.index') }}" class="btn btn-outline btn-sm {{ request()->routeIs('admin.books.*') ? 'btn-active' : '' }}">Buku</a>
+    <a href="{{ route('admin.loans.index') }}" class="btn btn-outline btn-sm {{ request()->routeIs('admin.loans.*') ? 'btn-active' : '' }}">📚 Peminjaman</a>
     <span class="nav-pill">{{ session('user_name', 'Admin') }}</span>
 
     <form method="POST" action="{{ route('logout') }}" style="display:inline">
