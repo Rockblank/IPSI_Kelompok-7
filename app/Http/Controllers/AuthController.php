@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Http\Controllers\CartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -44,7 +45,27 @@ class AuthController extends Controller
         Session::put('user_email',$user->email);
         Session::put('role',      $user->role);
 
-        return $this->redirectByRole($user->role);
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.books.index');
+        }
+
+        if (Session::has('login_pending_action')) {
+            $pending = Session::pull('login_pending_action');
+
+            if ($pending['type'] === 'add_to_cart' && !empty($pending['book_id'])) {
+                $result = CartController::addBookToCart($user->user_id, $pending['book_id']);
+                return redirect()->route('cart.index')
+                    ->with($result['status'], $result['message']);
+            }
+
+            if ($pending['type'] === 'add_to_queue' && !empty($pending['book_id'])) {
+                $result = CartController::addBookToQueue($user->user_id, $pending['book_id']);
+                return redirect()->route('cart.index')
+                    ->with($result['status'], $result['message']);
+            }
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     // ── REGISTER ───────────────────────────────────────────

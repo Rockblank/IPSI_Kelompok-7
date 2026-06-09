@@ -12,18 +12,14 @@ class DashboardController extends Controller
     // ── 1. METHOD INDEX (Tugas No. 1) ───────────────────────────────────
     public function index()
     {
-        if (!Session::has('user_id')) {
-            return redirect()->route('login')->withErrors(['email' => 'Silakan login terlebih dahulu.']);
-        }
-
         if (Session::get('role') === 'admin') {
             return redirect()->route('admin.books.index');
         }
 
-        $namaUser = Session::get('user_name', 'Aurelia');
+        $namaUser = Session::get('user_name', 'Teman');
 
         try {
-            $allBooks = Book::all(); 
+            $allBooks = Book::all();
         } catch (Exception $e) {
             return response()->view('errors.custom', ['message' => 'Sistem tidak tersedia'], 500);
         }
@@ -34,11 +30,7 @@ class DashboardController extends Controller
     // ── 2. METHOD SEARCH (Tugas No. 2) ──────────────────────────────────
     public function search(Request $request)
     {
-        if (!Session::has('user_id')) {
-            return redirect()->route('login')->withErrors(['email' => 'Silakan login terlebih dahulu.']);
-        }
-
-        $namaUser = Session::get('user_name', 'Aurelia');
+        $namaUser = Session::get('user_name', 'Teman');
         $keyword = $request->input('keyword');
 
         $query = Book::query();
@@ -58,12 +50,8 @@ class DashboardController extends Controller
     // ── 3. METHOD SHOW (Detail Buku — Pindahan dari BookController) ─────
     public function show($id)
     {
-        if (!Session::has('user_id')) {
-            return redirect()->route('login')->withErrors(['email' => 'Silakan login terlebih dahulu.']);
-        }
+        $namaUser = Session::get('user_name', 'Teman');
 
-        $namaUser = Session::get('user_name', 'Aurelia');
-        
         // Mengambil data buku berdasarkan id, jika tidak ada langsung memicu error 404
         $buku = Book::findOrFail($id);
 

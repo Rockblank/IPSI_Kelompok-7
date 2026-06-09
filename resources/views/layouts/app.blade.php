@@ -127,6 +127,11 @@
             @csrf
             <button class="btn btn-outline btn-sm" type="submit">Keluar</button>
         </form>
+    @else
+        <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
+            <a href="{{ route('login') }}" class="btn btn-outline btn-sm">Masuk</a>
+            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Daftar</a>
+        </div>
     @endif
 </nav>
 

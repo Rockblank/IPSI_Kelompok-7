@@ -33,19 +33,30 @@ class CartController extends Controller
     public function add($bookId)
     {
         $userId = session('user_id');
-        $book   = Book::findOrFail($bookId);
+        $result = self::addBookToCart($userId, $bookId);
+
+        return redirect()->back()->with($result['status'], $result['message']);
+    }
+
+    public static function addBookToCart(int $userId, int $bookId): array
+    {
+        $book = Book::find($bookId);
+
+        if (!$book) {
+            return ['status' => 'error', 'message' => 'Buku tidak ditemukan.'];
+        }
 
         if ($book->available_stock <= 0) {
-            return redirect()->back()->with('error', 'Maaf, stok buku ini sudah habis.');
+            return ['status' => 'error', 'message' => 'Maaf, stok buku ini sudah habis.'];
         }
 
         if (CartQueue::where('user_id', $userId)->where('book_id', $bookId)->where('type', 'cart')->exists()) {
-            return redirect()->back()->with('error', 'Buku sudah ada di keranjang Anda.');
+            return ['status' => 'error', 'message' => 'Buku sudah ada di keranjang Anda.'];
         }
 
         $count = CartQueue::where('user_id', $userId)->where('type', 'cart')->count();
         if ($count >= 10) {
-            return redirect()->back()->with('error', 'Keranjang maksimal hanya 10 buku.');
+            return ['status' => 'error', 'message' => 'Keranjang maksimal hanya 10 buku.'];
         }
 
         CartQueue::create([
@@ -55,22 +66,32 @@ class CartController extends Controller
             'is_reminder_active' => 0,
         ]);
 
-        return redirect()->back()->with('success', 'Buku "' . $book->book_title . '" berhasil ditambahkan ke keranjang!');
+        return ['status' => 'success', 'message' => 'Buku "' . $book->book_title . '" berhasil ditambahkan ke keranjang!'];
     }
 
     // Daftar antrian notifikasi untuk buku yang sedang habis
     public function addToQueue($bookId)
     {
         $userId = session('user_id');
-        $book   = Book::findOrFail($bookId);
+        $result = self::addBookToQueue($userId, $bookId);
 
-        // Jika ternyata sudah tersedia, langsung tambah ke keranjang biasa
+        return redirect()->back()->with($result['status'], $result['message']);
+    }
+
+    public static function addBookToQueue(int $userId, int $bookId): array
+    {
+        $book = Book::find($bookId);
+
+        if (!$book) {
+            return ['status' => 'error', 'message' => 'Buku tidak ditemukan.'];
+        }
+
         if ($book->available_stock > 0) {
-            return $this->add($bookId);
+            return ['status' => 'success', 'message' => 'Buku tersedia, sudah dapat ditambahkan ke keranjang.'];
         }
 
         if (CartQueue::where('user_id', $userId)->where('book_id', $bookId)->exists()) {
-            return redirect()->back()->with('error', 'Buku sudah ada di keranjang atau daftar notifikasi Anda.');
+            return ['status' => 'error', 'message' => 'Buku sudah ada di keranjang atau daftar notifikasi Anda.'];
         }
 
         CartQueue::create([
@@ -80,7 +101,7 @@ class CartController extends Controller
             'is_reminder_active' => 1,
         ]);
 
-        return redirect()->back()->with('success', 'Notifikasi untuk "' . $book->book_title . '" diaktifkan. Anda akan diberitahu saat buku tersedia.');
+        return ['status' => 'success', 'message' => 'Notifikasi untuk "' . $book->book_title . '" diaktifkan. Anda akan diberitahu saat buku tersedia.'];
     }
 
     // Hapus dari Keranjang / Antrian

@@ -10,7 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\BookController as AdminBookController;
 use App\Http\Controllers\Admin\LoanController as AdminLoanController;
 
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn() => redirect()->route('dashboard'));
 
 // ── GUEST ────────────────────────────────────────────────────────
 Route::middleware('guest.check')->group(function () {
@@ -23,12 +23,13 @@ Route::middleware('guest.check')->group(function () {
 // ── LOGOUT ───────────────────────────────────────────────────────
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// ── PUBLIC USER ROUTES ─────────────────────────────────────────────
+Route::get('/dashboard',        [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
+Route::get('/books/{book}',     [DashboardController::class, 'show'])->name('books.show');
+
 // ── USER ROUTES ──────────────────────────────────────────────────
 Route::middleware(['auth.check'])->group(function () {
-
-    Route::get('/dashboard',        [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
-    Route::get('/books/{book}',     [DashboardController::class, 'show'])->name('books.show');
 
     Route::get('/cart',                    [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add/{book}',        [CartController::class, 'add'])->name('cart.add');
