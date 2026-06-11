@@ -49,6 +49,21 @@ class LoanController extends Controller
                 ->with('error', 'Tidak ada buku yang dipilih. Tambahkan buku ke keranjang terlebih dahulu.');
         }
 
+        // Validasi: hitung total peminjaman aktif
+        $activeBorrows = Loan::countActiveBorrows($user_id);
+        if ($activeBorrows + $keranjang->count() > 10) {
+            return redirect()->route('cart.index')
+                ->with('error', 'Total peminjaman Anda akan melebihi batas maksimal 10 buku. Kembalikan beberapa buku terlebih dahulu.');
+        }
+
+        // Validasi: cek apakah ada buku yang sudah dipinjam sebelumnya
+        foreach ($keranjang as $item) {
+            if (Loan::isBookAlreadyBorrowed($user_id, $item->book_id)) {
+                return redirect()->route('cart.index')
+                    ->with('error', 'Anda sudah meminjam buku "' . $item->book->book_title . '". Kembalikan terlebih dahulu sebelum meminjam lagi.');
+            }
+        }
+
         $loan_date = Carbon::now()->toDateString();
         $due_date  = Carbon::now()->addDays($lama_pinjam)->toDateString();
 

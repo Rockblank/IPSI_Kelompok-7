@@ -54,9 +54,18 @@ class CartController extends Controller
             return ['status' => 'error', 'message' => 'Buku sudah ada di keranjang Anda.'];
         }
 
-        $count = CartQueue::where('user_id', $userId)->where('type', 'cart')->count();
-        if ($count >= 10) {
-            return ['status' => 'error', 'message' => 'Keranjang maksimal hanya 10 buku.'];
+        // Cek apakah user sudah meminjam buku yang sama (status = 'borrowed')
+        if (\App\Models\Loan::isBookAlreadyBorrowed($userId, $bookId)) {
+            return ['status' => 'error', 'message' => 'Anda sudah meminjam buku ini. Kembalikan terlebih dahulu sebelum meminjam lagi.'];
+        }
+
+        // Cek total peminjaman aktif (di keranjang + yang sedang dipinjam)
+        $activeBorrows = \App\Models\Loan::countActiveBorrows($userId);
+        $cartCount = CartQueue::where('user_id', $userId)->where('type', 'cart')->count();
+        $totalBorrows = $activeBorrows + $cartCount;
+
+        if ($totalBorrows >= 10) {
+            return ['status' => 'error', 'message' => 'Anda sudah mencapai batas maksimal peminjaman (10 buku). Kembalikan buku terlebih dahulu.'];
         }
 
         CartQueue::create([
